@@ -14,6 +14,17 @@ For an upward-facing unit face normal n and unit build-up vector u, inclination 
 
 The optimizer sums actual triangle areas in the chosen upward-facing angle band. It samples directions on a Fibonacci sphere, adds cardinal directions, and refines the best candidates. It ranks by bad area, buffered bad area, projected downward overhang area, then tilt. It applies a rigid rotation and translates the lowest point to Z=0.
 
+## Desktop application (v0.2)
+
+Download the repository as a ZIP, extract it, and install Python 3 (with Tk support). On Windows, double-click `launch_windows.bat` to create a virtual environment, install dependencies and launch the application. The first launch needs internet access for dependencies. Alternatively run:
+
+```sh
+python -m pip install -r requirements-gui.txt
+python optimizer_gui.py
+```
+
+Open an STL or click Demo block, select the undesirable angle band, click Optimize, orbit the two previews, and export a new STL and JSON report. Red faces are upward-facing triangles in the selected band; blue faces are outside it. The overhang projection is a heuristic, not a support-volume prediction. Review adhesion, supports and build volume in your slicer. The GUI demo and export were smoke-tested in a Linux virtual display; Windows launching has not been independently tested. No standalone executable is currently included.
+
 ## Quick start
 
 Requires Python 3 and the dependencies in requirements.txt.
@@ -32,7 +43,7 @@ On the 61,370-triangle camera bracket mesh: 879.7551 mm² upward-facing area in 
 
 ## Limitations
 
-This is a sampled search, not proof of a global optimum. The downward projection metric is only a heuristic, not actual support volume. Bed adhesion, printer build volume, support contact, strength, time, cosmetic priority and assembly constraints still require manual review. No physical improvement is guaranteed. Curved surfaces are evaluated as STL triangles. The software does not repair invalid meshes. The calibration STL assets, visual interface and broader validation are planned.
+This is a sampled search, not proof of a global optimum. The downward projection metric is only a heuristic, not actual support volume. Bed adhesion, printer build volume, support contact, strength, time, cosmetic priority and assembly constraints still require manual review. No physical improvement is guaranteed. Curved surfaces are evaluated as STL triangles. The software does not repair invalid meshes. Calibration STL assets, multiple candidate comparison, support-volume estimation and broader validation are planned.
 
 ## Contributing
 
