@@ -12,9 +12,9 @@ Arachne, reduced wall count and ironing showed some improvement; finer tessellat
 
 For an upward-facing unit face normal n and unit build-up vector u, inclination relative to the build plate is acos(n dot u). The horizontal terrace spacing for layer height h and nonzero inclination theta is h / tan(theta). At h = 0.12 mm and theta = 10 degrees, spacing is about 0.681 mm. The spacing is a geometric fact; the empirical bad-angle band is profile-dependent.
 
-The optimizer sums actual triangle areas in the chosen upward-facing angle band. It samples directions on a Fibonacci sphere, adds cardinal directions, and refines the best candidates. It ranks by bad area, buffered bad area, projected downward overhang area, then tilt. It applies a rigid rotation and translates the lowest point to Z=0.
+The optimizer sums actual triangle areas in the chosen upward-facing angle band. It samples directions on a Fibonacci sphere, adds cardinal directions, and refines the best candidates. The v0.2-compatible CLI ranks by bad area, buffered bad area, projected downward overhang area, then tilt. It applies a rigid rotation and translates the lowest point to Z=0.
 
-## Desktop application (v0.2)
+## Desktop application (v0.3)
 
 Download the repository as a ZIP, extract it, and install Python 3 (with Tk support). On Windows, double-click `launch_windows.bat` to create a virtual environment, install dependencies and launch the application. The first launch needs internet access for dependencies. Alternatively run:
 
@@ -23,7 +23,19 @@ python -m pip install -r requirements-gui.txt
 python optimizer_gui.py
 ```
 
-Open an STL or click Demo block, select the undesirable angle band, click Optimize, orbit the two previews, and export a new STL and JSON report. Red faces are upward-facing triangles in the selected band; blue faces are outside it. The overhang projection is a heuristic, not a support-volume prediction. Review adhesion, supports and build volume in your slicer. The GUI demo and export were smoke-tested in a Linux virtual display; Windows launching has not been independently tested. No standalone executable is currently included.
+Open an STL or click **Demo block**, set the angle band, and click **Optimize**. Select a row to preview that orientation and export its STL and JSON report. Red faces are upward-facing triangles in the band. The reference plate shows Z = 0 and has no printer-specific dimensions. Rows list the exact-band area, buffered band area, projected overhang proxy, and build height. If several modes pick the same build direction, they share a row.
+
+| Mode | Ranking |
+|---|---|
+| Surface quality | Minimize bad area, then buffered area, then the overhang proxy and height. |
+| Balanced | Minimize bad area first, then trade off buffered area, overhang proxy and height equally. |
+| Minimum supports proxy | Minimize projected downward overhang area. This choice can increase bad area. |
+| Minimum height | Minimize the vertical distance between the lowest and highest points. This choice can increase bad area. |
+| Custom | Minimize bad area first, then trade off buffered area, overhang proxy and height with your weights. |
+
+For Balanced and Custom, both area metrics are divided by total mesh surface area and height by the original bounding-box diagonal. Custom weights are relative, allow zero, and require at least one positive value. Surface quality, Balanced and Custom preserve zero bad area whenever the search finds it. Narrow bands and results near a band edge may be sensitive to STL rounding. The export report remeasures all four metrics after reading back the saved STL.
+
+The overhang proxy adds the horizontal projected area of downward faces past the configured overhang threshold. It can count bed-contact faces and overlapping projections. It estimates neither support grams nor print time. Confirm those measurements in the slicer with the same print profile when comparing builds.
 
 ## Quick start
 
@@ -41,9 +53,11 @@ The STL must be watertight with consistent outward winding and positive volume. 
 
 On the 61,370-triangle camera bracket mesh: 879.7551 mm² upward-facing area in the 5–13 degree band before optimization, 0 mm² after optimization and STL reimport. The exported mesh remained watertight. Three automated unit tests passed locally with NumPy 2.3.5 and trimesh 4.11.1.
 
+The user's separate v0.2 Windows run reduced bad area from 68.403 to 0 mm². The result was 56.40 mm tall, with Flash Studio estimates of 3.64 g of support and 1 h 36 min at 0.10 mm layer height. These are historical benchmark values. The v0.3 regression tests use synthetic geometry. Seven unit tests and an automated Windows Tk smoke test passed with Python 3.12, NumPy 2.5.5, trimesh 4.12.2 and Matplotlib 3.11.2. The smoke test covered candidate selection, reference plate rendering and export. The Windows batch launcher, camera-bracket benchmark and physical prints still need v0.3 validation.
+
 ## Limitations
 
-This is a sampled search, not proof of a global optimum. The downward projection metric is only a heuristic, not actual support volume. Bed adhesion, printer build volume, support contact, strength, time, cosmetic priority and assembly constraints still require manual review. No physical improvement is guaranteed. Curved surfaces are evaluated as STL triangles. The software does not repair invalid meshes. Calibration STL assets, multiple candidate comparison, support-volume estimation and broader validation are planned.
+This is a sampled search, not proof of a global optimum. The downward projection metric is only a heuristic, not actual support volume. Bed adhesion, printer build volume, support contact, strength, time, cosmetic priority and assembly constraints still require manual review. No physical improvement is guaranteed. Curved surfaces are evaluated as STL triangles. The software does not repair invalid meshes. Calibration STL assets, slicer-aware support estimation and broader validation are planned.
 
 ## Contributing
 
